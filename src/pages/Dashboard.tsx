@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getProjects } from '../services/projectService';
+import { getProjects, deleteProject } from '../services/projectService';
 import { getSchools, deleteSchool } from '../services/schoolService';
 
 interface School {
@@ -81,16 +81,31 @@ export default function Dashboard() {
   };
 
   const handleDeleteSchool = async (id: number) => {
-  if (!window.confirm('¿Estás seguro de que quieres eliminar este centro?')) return;
+  if (!window.confirm('Are you sure you want to delete this school?')) return;
   
   try {
     await deleteSchool(id);
     fetchSchools();
   } catch (err: any) {
     if (err.response?.status === 404) {
-      alert('Centro educativo no encontrado');
+      alert('School not found');
     } else {
-      alert('Error al eliminar el centro educativo');
+      alert("Error: can't delete the selected school");
+    }
+  }
+};
+
+const handleDeleteProject = async (id: number) => {
+  if (!window.confirm('Are you sure you want to delete this project?')) return;
+
+  try {
+    await deleteProject(id);
+    fetchProjects();
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      alert('Project not found');
+    } else {
+      alert("Error: can't delete the selected project");
     }
   }
 };
@@ -312,7 +327,7 @@ export default function Dashboard() {
                       <button onClick={() => navigate(`/projects/edit/${project.id}`)}>
                         Edit
                       </button>
-                      <button className="btn-delete">
+                      <button className="btn-delete" onClick={() => handleDeleteProject(project.id)}>
                         Delete
                       </button>
                     </td>
