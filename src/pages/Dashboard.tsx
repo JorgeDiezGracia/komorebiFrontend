@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getProjects, deleteProject } from '../services/projectService';
 import { getSchools, deleteSchool } from '../services/schoolService';
+import Navbar from '../components/Navbar';
+import { ODS_LIST } from '../constants/ods';
 
 interface School {
   id: number;
@@ -116,10 +118,7 @@ const handleDeleteProject = async (id: number) => {
   }
 };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+ 
 
   // Format Date
   const formatDate = (dateStr: string) => {
@@ -179,15 +178,7 @@ const handleDeleteProject = async (id: number) => {
 
   return (
     <div className="dashboard">
-      {/* HEADER */}
-      <header className="dashboard-header">
-        <h1>Komorebi</h1>
-        <div className="header-right">
-          <span>Hi, {user?.username} ({isAdmin ? 'Admin' : 'Usuario'})</span>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
+      <Navbar/>
       {/* SUMMARY */}
       <section className="summary">
         <div className="summary-card">
@@ -234,18 +225,22 @@ const handleDeleteProject = async (id: number) => {
             value={filterSchoolCity}
             onChange={(e) => setFilterSchoolCity(e.target.value)}
           />
-          <input
-            type="date"
-            value={schoolDateFrom}
-            onChange={(e) => setSchoolDateFrom(e.target.value)}
-            title="Desde"
-          />
-          <input
-            type="date"
-            value={schoolDateTo}
-            onChange={(e) => setSchoolDateTo(e.target.value)}
-            title="Hasta"
-          />
+          <div className="filter-date-group">
+            <label>Register Date from:</label>
+            <input
+              type="date"
+              value={schoolDateFrom}
+              onChange={(e) => setSchoolDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="filter-date-group">
+            <label>Register Date to:</label>
+            <input
+              type="date"
+              value={schoolDateTo}
+              onChange={(e) => setSchoolDateTo(e.target.value)}
+            />
+          </div>
         </div>
 
         {loadingSchools && <div className="state-msg">Loading...</div>}
@@ -317,18 +312,22 @@ const handleDeleteProject = async (id: number) => {
             value={filterProjectName}
             onChange={(e) => setFilterProjectName(e.target.value)}
           />
-          <input
-            type="date"
-            value={projectDateFrom}
-            onChange={(e) => setProjectDateFrom(e.target.value)}
-            title="Desde"
-          />
-          <input
-            type="date"
-            value={projectDateTo}
-            onChange={(e) => setProjectDateTo(e.target.value)}
-            title="Hasta"
-          />
+          <div className="filter-date-group">
+            <label>Start Date from</label>
+            <input
+              type="date"
+              value={projectDateFrom}
+              onChange={(e) => setProjectDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="filter-date-group">
+            <label>Start Date to</label>
+            <input
+              type="date"
+              value={projectDateTo}
+              onChange={(e) => setProjectDateTo(e.target.value)}
+            />
+          </div>
         </div>
 
         {loadingProjects && <div className="state-msg">Loading...</div>}
@@ -360,7 +359,7 @@ const handleDeleteProject = async (id: number) => {
                 <tr key={project.id}>
                   <td>{project.name}</td>
                   <td>{project.description}</td>
-                  <td>{project.ods}</td>
+                  <td>{ODS_LIST.find(o => o.value === project.ods)?.label || project.ods}</td>
                   <td>{project.active ? 'Yes' : 'No'}</td>
                   <td>{formatDate(project.startDate)}</td>
                   {isAdmin && (

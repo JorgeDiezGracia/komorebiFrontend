@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createProject, getProjectById, updateProject } from '../services/projectService';
 import { getSchools } from '../services/schoolService';
+import { ODS_LIST } from '../constants/ods';
 
 interface School {
   id: number;
@@ -117,15 +118,18 @@ export default function ProjectForm() {
 
           <div className="form-group">
             <label>ODS</label>
-            <input
-              type="number"
-              value={ods}
-              onChange={(e) => setOds(e.target.value)}
-              placeholder="ODS Number (1-17)"
-              min="1"
-              max="17"
-            />
-          </div>
+            <select
+                value={ods}
+                onChange={(e) => setOds(e.target.value)}
+            >
+                <option value="">Select an ODS</option>
+                {ODS_LIST.map(o => (
+                    <option key={o.value} value={o.value}>
+                        {o.label}
+                    </option>
+                ))}
+            </select>
+        </div>
 
           <div className="form-group checkbox-group">
             <label>
