@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getSchools } from '../services/schoolService';
 import { getProjects } from '../services/projectService';
+import { getSchools, deleteSchool } from '../services/schoolService';
 
 interface School {
   id: number;
@@ -80,6 +80,21 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteSchool = async (id: number) => {
+  if (!window.confirm('¿Estás seguro de que quieres eliminar este centro?')) return;
+  
+  try {
+    await deleteSchool(id);
+    fetchSchools();
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      alert('Centro educativo no encontrado');
+    } else {
+      alert('Error al eliminar el centro educativo');
+    }
+  }
+};
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -141,7 +156,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* RESUMEN */}
+      {/* SUMMARY */}
       <section className="summary">
         <div className="summary-card">
           <h3>Schools</h3>
@@ -228,7 +243,7 @@ export default function Dashboard() {
                       <button onClick={() => navigate(`/schools/edit/${school.id}`)}>
                         Edit
                       </button>
-                      <button className="btn-delete">
+                      <button className="btn-delete" onClick={() => handleDeleteSchool(school.id)}>
                         Delete
                       </button>
                     </td>
