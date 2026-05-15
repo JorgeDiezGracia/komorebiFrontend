@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SchoolForm from './pages/SchoolForm';
+import ProjectForm from './pages/ProjectForm';
 import { useAuth } from './context/AuthContext';
 
 
@@ -33,6 +34,16 @@ function App() {
       <Route path="/schools/edit/:id" element={
         <PrivateRoute>
           <SchoolForm />
+        </PrivateRoute>
+      } />
+      <Route path="/projects/new" element={
+        <PrivateRoute>
+          <ProjectForm />
+        </PrivateRoute>
+      } />
+      <Route path="/projects/edit/:id" element={
+        <PrivateRoute>
+          <ProjectForm />
         </PrivateRoute>
       } />
     </Routes>
