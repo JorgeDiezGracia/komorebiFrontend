@@ -2,7 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import SchoolForm from './pages/SchoolForm';
 import { useAuth } from './context/AuthContext';
+
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -23,6 +25,11 @@ function App() {
         </PrivateRoute>
       } />
       <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/schools/new" element={
+        <PrivateRoute>
+          <SchoolForm />
+        </PrivateRoute>
+      } />
     </Routes>
   );
 }
