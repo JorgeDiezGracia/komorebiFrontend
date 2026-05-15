@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createSchool } from '../services/schoolService';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createSchool, getSchoolById, updateSchool } from '../services/schoolService';
 
 export default function SchoolForm() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const isEditing = !!id;
 
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
@@ -12,6 +14,28 @@ export default function SchoolForm() {
   const [registerDate, setRegisterDate] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(isEditing);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const fetchSchool = async () => {
+      try {
+        const response = await getSchoolById(Number(id));
+        const school = response.data;
+        setName(school.name);
+        setCity(school.city);
+        setStudents(school.students.toString());
+        setPublicSchool(school.publicSchool);
+        setRegisterDate(school.registerDate);
+      } catch {
+        setError('Error loading school');
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    fetchSchool();
+  }, [id]);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -19,29 +43,35 @@ export default function SchoolForm() {
     setLoading(true);
 
     try {
-      await createSchool({
-        name,
-        city,
-        students: parseInt(students),
-        publicSchool,
-        registerDate
-      });
+      if (isEditing) {
+        await updateSchool(Number(id), {
+          name, city, students: parseInt(students), publicSchool, registerDate
+        });
+      } else {
+        await createSchool({
+          name, city, students: parseInt(students), publicSchool, registerDate
+        });
+      }
       navigate('/dashboard');
     } catch (err: any) {
       if (err.response?.status === 400) {
-        setError('Incorrect data - please check the fields');
+        setError('Invalid data, please check fields');
+      } else if (err.response?.status === 404) {
+        setError('School not found');
       } else {
-        setError("Error: Can't connect to the server");
+        setError("Error: can't connect to the server");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  if (loadingData) return <div className="state-msg">Loading...</div>;
+
   return (
     <div className="form-page">
       <div className="form-card">
-        <h2>New school</h2>
+        <h2>{isEditing ? 'Edit school' : 'New school'}</h2>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -52,7 +82,7 @@ export default function SchoolForm() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="SchoolName"
+              placeholder="School name"
               required
             />
           </div>
@@ -103,7 +133,7 @@ export default function SchoolForm() {
               Cancel
             </button>
             <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
             </button>
           </div>
         </form>
