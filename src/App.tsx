@@ -30,6 +30,11 @@ function App() {
           <SchoolForm />
         </PrivateRoute>
       } />
+      <Route path="/schools/edit/:id" element={
+        <PrivateRoute>
+          <SchoolForm />
+        </PrivateRoute>
+      } />
     </Routes>
   );
 }
