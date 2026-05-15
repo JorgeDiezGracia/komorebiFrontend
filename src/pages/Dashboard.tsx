@@ -37,9 +37,15 @@ export default function Dashboard() {
   // Filters schools
   const [filterSchoolName, setFilterSchoolName] = useState('');
   const [filterSchoolCity, setFilterSchoolCity] = useState('');
+  const [schoolDateFrom, setSchoolDateFrom] = useState('');
+  const [schoolDateTo, setSchoolDateTo] = useState('');
+
+
 
   // Filters projects
   const [filterProjectName, setFilterProjectName] = useState('');
+  const [projectDateFrom, setProjectDateFrom] = useState('');
+  const [projectDateTo, setProjectDateTo] = useState('');
 
   // Sorting
   const [schoolSortField, setSchoolSortField] = useState<keyof School>('name');
@@ -115,32 +121,43 @@ const handleDeleteProject = async (id: number) => {
     navigate('/login');
   };
 
+  // Format Date
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   // Filter and sorting schools
   const filteredSchools = schools
-    .filter(s =>
-      s.name.toLowerCase().includes(filterSchoolName.toLowerCase()) &&
-      s.city.toLowerCase().includes(filterSchoolCity.toLowerCase())
-    )
-    .sort((a, b) => {
-      const valA = a[schoolSortField];
-      const valB = b[schoolSortField];
-      if (valA < valB) return schoolSortAsc ? -1 : 1;
-      if (valA > valB) return schoolSortAsc ? 1 : -1;
-      return 0;
-    });
+  .filter(s =>
+    s.name.toLowerCase().includes(filterSchoolName.toLowerCase()) &&
+    s.city.toLowerCase().includes(filterSchoolCity.toLowerCase()) &&
+    (schoolDateFrom === '' || s.registerDate >= schoolDateFrom) &&
+    (schoolDateTo === '' || s.registerDate <= schoolDateTo)
+  )
+  .sort((a, b) => {
+    const valA = a[schoolSortField];
+    const valB = b[schoolSortField];
+    if (valA < valB) return schoolSortAsc ? -1 : 1;
+    if (valA > valB) return schoolSortAsc ? 1 : -1;
+    return 0;
+  });
 
   // Filter and sorting projects
   const filteredProjects = projects
-    .filter(p =>
-      p.name.toLowerCase().includes(filterProjectName.toLowerCase())
-    )
-    .sort((a, b) => {
-      const valA = a[projectSortField];
-      const valB = b[projectSortField];
-      if (valA < valB) return projectSortAsc ? -1 : 1;
-      if (valA > valB) return projectSortAsc ? 1 : -1;
-      return 0;
-    });
+  .filter(p =>
+    p.name.toLowerCase().includes(filterProjectName.toLowerCase()) &&
+    (projectDateFrom === '' || p.startDate >= projectDateFrom) &&
+    (projectDateTo === '' || p.startDate <= projectDateTo)
+  )
+  .sort((a, b) => {
+    const valA = a[projectSortField];
+    const valB = b[projectSortField];
+    if (valA < valB) return projectSortAsc ? -1 : 1;
+    if (valA > valB) return projectSortAsc ? 1 : -1;
+    return 0;
+  });
 
   const toggleSchoolSort = (field: keyof School) => {
     if (schoolSortField === field) {
@@ -217,6 +234,18 @@ const handleDeleteProject = async (id: number) => {
             value={filterSchoolCity}
             onChange={(e) => setFilterSchoolCity(e.target.value)}
           />
+          <input
+            type="date"
+            value={schoolDateFrom}
+            onChange={(e) => setSchoolDateFrom(e.target.value)}
+            title="Desde"
+          />
+          <input
+            type="date"
+            value={schoolDateTo}
+            onChange={(e) => setSchoolDateTo(e.target.value)}
+            title="Hasta"
+          />
         </div>
 
         {loadingSchools && <div className="state-msg">Loading...</div>}
@@ -252,7 +281,7 @@ const handleDeleteProject = async (id: number) => {
                   <td>{school.city}</td>
                   <td>{school.students}</td>
                   <td>{school.publicSchool ? 'Yes' : 'No'}</td>
-                  <td>{school.registerDate}</td>
+                  <td>{formatDate(school.registerDate)}</td>
                   {isAdmin && (
                     <td>
                       <button onClick={() => navigate(`/schools/edit/${school.id}`)}>
@@ -288,6 +317,18 @@ const handleDeleteProject = async (id: number) => {
             value={filterProjectName}
             onChange={(e) => setFilterProjectName(e.target.value)}
           />
+          <input
+            type="date"
+            value={projectDateFrom}
+            onChange={(e) => setProjectDateFrom(e.target.value)}
+            title="Desde"
+          />
+          <input
+            type="date"
+            value={projectDateTo}
+            onChange={(e) => setProjectDateTo(e.target.value)}
+            title="Hasta"
+          />
         </div>
 
         {loadingProjects && <div className="state-msg">Loading...</div>}
@@ -321,7 +362,7 @@ const handleDeleteProject = async (id: number) => {
                   <td>{project.description}</td>
                   <td>{project.ods}</td>
                   <td>{project.active ? 'Yes' : 'No'}</td>
-                  <td>{project.startDate}</td>
+                  <td>{formatDate(project.startDate)}</td>
                   {isAdmin && (
                     <td>
                       <button onClick={() => navigate(`/projects/edit/${project.id}`)}>
