@@ -20,7 +20,7 @@ export default function Login() {
     try {
       const response = await login(username, password);
       saveSession(response.data);
-      navigate('/schools');
+      navigate('/dashboard');
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError('User or password incorrect');

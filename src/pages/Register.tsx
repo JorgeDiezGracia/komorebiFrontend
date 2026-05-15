@@ -20,7 +20,7 @@ export default function Register() {
     try {
       const response = await register(username, password, 'USER');
       saveSession(response.data);
-      navigate('/schools');
+      navigate('/dashboard');
     } catch (err: any) {
       if (err.response?.status === 409) {
         setError('Username already exists');
