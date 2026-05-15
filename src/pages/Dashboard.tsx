@@ -127,6 +127,11 @@ const handleDeleteProject = async (id: number) => {
     return `${day}/${month}/${year}`;
   };
 
+  // Format boolean
+  const renderBoolean = (value: boolean) => {
+    return value ? '✅' : '❌';
+  };
+
   // Filter and sorting schools
   const filteredSchools = schools
   .filter(s =>
@@ -275,7 +280,7 @@ const handleDeleteProject = async (id: number) => {
                   <td>{school.name}</td>
                   <td>{school.city}</td>
                   <td>{school.students}</td>
-                  <td>{school.publicSchool ? 'Yes' : 'No'}</td>
+                  <td>{renderBoolean(school.publicSchool)}</td>
                   <td>{formatDate(school.registerDate)}</td>
                   {isAdmin && (
                     <td>
@@ -360,7 +365,7 @@ const handleDeleteProject = async (id: number) => {
                   <td>{project.name}</td>
                   <td>{project.description}</td>
                   <td>{ODS_LIST.find(o => o.value === project.ods)?.label || project.ods}</td>
-                  <td>{project.active ? 'Yes' : 'No'}</td>
+                  <td>{renderBoolean(project.active)}</td>
                   <td>{formatDate(project.startDate)}</td>
                   {isAdmin && (
                     <td>

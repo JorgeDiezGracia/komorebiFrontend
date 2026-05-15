@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -25,6 +27,9 @@ export default function Navbar() {
         )}
       </div>
       <div className="navbar-user">
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {isDark ? '☀️' : '🌙'}
+        </button>
         <span>{user?.username} ({user?.role === 'ROLE_ADMIN' ? 'Admin' : 'User'})</span>
         <button onClick={handleLogout}>Logout</button>
       </div>
