@@ -1,13 +1,26 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
-const AuthContext = createContext();
+interface UserData {
+  token: string;
+  username: string;
+  role: string;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+interface AuthContextType {
+  user: UserData | null;
+  loading: boolean;
+  saveSession: (data: UserData) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Al cargar la app, comprueba si hay sesión guardada
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     const role = localStorage.getItem('role');
@@ -18,7 +31,7 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const saveSession = (data) => {
+  const saveSession = (data: UserData) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('username', data.username);
     localStorage.setItem('role', data.role);
@@ -40,5 +53,7 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
 }
