@@ -5,6 +5,8 @@ import { getProjects, deleteProject } from '../services/projectService';
 import { getSchools, deleteSchool } from '../services/schoolService';
 import Navbar from '../components/Navbar';
 import { ODS_LIST } from '../constants/ods';
+import { getUserCount } from '../services/userService';
+import ConfirmModal from '../components/ConfirmModal';
 
 interface School {
   id: number;
@@ -26,11 +28,18 @@ interface Project {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+ 
 
   const [schools, setSchools] = useState<School[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [userCount, setUserCount] = useState(0);
+  const [confirmModal, setConfirmModal] = useState<{
+  show: boolean;
+  message: string;
+  onConfirm: () => void;
+}>({ show: false, message: '', onConfirm: () => {} });
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [errorSchools, setErrorSchools] = useState('');
@@ -55,11 +64,13 @@ export default function Dashboard() {
   const [projectSortField, setProjectSortField] = useState<keyof Project>('name');
   const [projectSortAsc, setProjectSortAsc] = useState(true);
 
+
   const isAdmin = user?.role === 'ROLE_ADMIN';
 
   useEffect(() => {
     fetchSchools();
     fetchProjects();
+    if (isAdmin) fetchUserCount();
   }, []);
 
   const fetchSchools = async () => {
@@ -88,35 +99,38 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteSchool = async (id: number) => {
-  if (!window.confirm('Are you sure you want to delete this school?')) return;
-  
-  try {
-    await deleteSchool(id);
-    fetchSchools();
-  } catch (err: any) {
-    if (err.response?.status === 404) {
-      alert('School not found');
-    } else {
-      alert("Error: can't delete the selected school");
+  const fetchUserCount = async () => {
+    try {
+      const response = await getUserCount();
+      setUserCount(response.data);
+    } catch {
+      console.error('Error fetching user count');
     }
-  }
-};
+  };
 
-const handleDeleteProject = async (id: number) => {
-  if (!window.confirm('Are you sure you want to delete this project?')) return;
+  const handleDeleteSchool = (id: number) => {
+    showConfirm('Are your sure to delete this school?', async () => {
+      setConfirmModal(prev => ({ ...prev, show: false }));
+      try {
+        await deleteSchool(id);
+        fetchSchools();
+      } catch (err: any) {
+        alert('Error deleting school');
+      }
+    });
+  };
 
-  try {
-    await deleteProject(id);
-    fetchProjects();
-  } catch (err: any) {
-    if (err.response?.status === 404) {
-      alert('Project not found');
-    } else {
-      alert("Error: can't delete the selected project");
-    }
-  }
-};
+  const handleDeleteProject = (id: number) => {
+    showConfirm('Are you sure to delete this project?', async () => {
+      setConfirmModal(prev => ({ ...prev, show: false }));
+      try {
+        await deleteProject(id);
+        fetchProjects();
+      } catch (err: any) {
+        alert('Error deleting project');
+      }
+    });
+  };
 
  
 
@@ -131,6 +145,11 @@ const handleDeleteProject = async (id: number) => {
   const renderBoolean = (value: boolean) => {
     return value ? '✅' : '❌';
   };
+
+  // Show delete modal
+  const showConfirm = (message: string, onConfirm: () => void) => {
+  setConfirmModal({ show: true, message, onConfirm });
+};
 
   // Filter and sorting schools
   const filteredSchools = schools
@@ -199,9 +218,9 @@ const handleDeleteProject = async (id: number) => {
           <p className="summary-number">{projects.filter(p => p.active).length}</p>
         </div>
         {isAdmin && (
-          <div className="summary-card admin">
-            <h3>Role</h3>
-            <p className="summary-number">ADMIN</p>
+          <div className="summary-card">
+            <h3>Number of users</h3>
+            <p className="summary-number">{userCount}</p>
           </div>
         )}
       </section>
@@ -383,6 +402,13 @@ const handleDeleteProject = async (id: number) => {
           </table>
         )}
       </section>
+      {confirmModal.show && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        />
+      )}
     </div>
   );
 }
