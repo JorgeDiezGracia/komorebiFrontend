@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createSchool, getSchoolById, updateSchool } from '../services/schoolService';
+import Navbar from '../components/Navbar';
 
 export default function SchoolForm() {
   const { id } = useParams();
@@ -69,74 +70,77 @@ export default function SchoolForm() {
   if (loadingData) return <div className="state-msg">Loading...</div>;
 
   return (
-    <div className="form-page">
-      <div className="form-card">
-        <h2>{isEditing ? 'Edit school' : 'New school'}</h2>
+    <div>
+      <Navbar/>
+      <div className="form-page">
+        <div className="form-card">
+          <h2>{isEditing ? 'Edit school' : 'New school'}</h2>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="School name"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>City</label>
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Number of students</label>
-            <input
-              type="number"
-              value={students}
-              onChange={(e) => setStudents(e.target.value)}
-              placeholder="Number of students"
-              min="1"
-            />
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Name *</label>
               <input
-                type="checkbox"
-                checked={publicSchool}
-                onChange={(e) => setPublicSchool(e.target.checked)}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="School name"
+                required
               />
-              Public school
-            </label>
-          </div>
+            </div>
 
-          <div className="form-group">
-            <label>Register date</label>
-            <input
-              type="date"
-              value={registerDate}
-              onChange={(e) => setRegisterDate(e.target.value)}
-            />
-          </div>
+            <div className="form-group">
+              <label>City</label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+              />
+            </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={() => navigate('/dashboard')}>
-              Cancel
-            </button>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
-            </button>
-          </div>
-        </form>
+            <div className="form-group">
+              <label>Number of students</label>
+              <input
+                type="number"
+                value={students}
+                onChange={(e) => setStudents(e.target.value)}
+                placeholder="Number of students"
+                min="1"
+              />
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={publicSchool}
+                  onChange={(e) => setPublicSchool(e.target.checked)}
+                />
+                Public school
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label>Register date</label>
+              <input
+                type="date"
+                value={registerDate}
+                onChange={(e) => setRegisterDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="button" onClick={() => navigate('/dashboard')}>
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

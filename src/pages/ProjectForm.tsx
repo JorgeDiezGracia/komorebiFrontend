@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createProject, getProjectById, updateProject } from '../services/projectService';
 import { getSchools } from '../services/schoolService';
+import { ODS_LIST } from '../constants/ods';
+import Navbar from '../components/Navbar';
 
 interface School {
   id: number;
@@ -87,93 +89,99 @@ export default function ProjectForm() {
   if (loadingData) return <div className="state-msg">Loading...</div>;
 
   return (
-    <div className="form-page">
-      <div className="form-card">
-        <h2>{isEditing ? 'Edit project' : 'New project'}</h2>
+    <div>
+      <Navbar/>
+      <div className="form-page">
+        <div className="form-card">
+          <h2>{isEditing ? 'Edit project' : 'New project'}</h2>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Project name"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Project description"
-              rows={3}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>ODS</label>
-            <input
-              type="number"
-              value={ods}
-              onChange={(e) => setOds(e.target.value)}
-              placeholder="ODS Number (1-17)"
-              min="1"
-              max="17"
-            />
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={active}
-                onChange={(e) => setActive(e.target.checked)}
-              />
-              Active project
-            </label>
-          </div>
-
-          <div className="form-group">
-            <label>Start date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-
-          {!isEditing && (
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>School *</label>
-              <select
-                value={schoolId}
-                onChange={(e) => setSchoolId(e.target.value)}
+              <label>Name *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Project name"
                 required
-              >
-                <option value="">Select school</option>
-                {schools.map(school => (
-                  <option key={school.id} value={school.id}>
-                    {school.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
-          )}
 
-          <div className="form-actions">
-            <button type="button" onClick={() => navigate('/dashboard')}>
-              Cancel
-            </button>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
-            </button>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Project description"
+                rows={3}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>ODS</label>
+              <select
+                  value={ods}
+                  onChange={(e) => setOds(e.target.value)}
+              >
+                  <option value="">Select an ODS</option>
+                  {ODS_LIST.map(o => (
+                      <option key={o.value} value={o.value}>
+                          {o.label}
+                      </option>
+                  ))}
+              </select>
           </div>
-        </form>
+
+            <div className="form-group checkbox-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                />
+                Active project
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label>Start date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            {!isEditing && (
+              <div className="form-group">
+                <label>School *</label>
+                <select
+                  value={schoolId}
+                  onChange={(e) => setSchoolId(e.target.value)}
+                  required
+                >
+                  <option value="">Select school</option>
+                  {schools.map(school => (
+                    <option key={school.id} value={school.id}>
+                      {school.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button type="button" onClick={() => navigate('/dashboard')}>
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

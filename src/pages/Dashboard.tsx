@@ -3,6 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getProjects, deleteProject } from '../services/projectService';
 import { getSchools, deleteSchool } from '../services/schoolService';
+import Navbar from '../components/Navbar';
+import { ODS_LIST } from '../constants/ods';
+import { getUserCount } from '../services/userService';
+import ConfirmModal from '../components/ConfirmModal';
 
 interface School {
   id: number;
@@ -24,11 +28,18 @@ interface Project {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+ 
 
   const [schools, setSchools] = useState<School[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [userCount, setUserCount] = useState(0);
+  const [confirmModal, setConfirmModal] = useState<{
+  show: boolean;
+  message: string;
+  onConfirm: () => void;
+}>({ show: false, message: '', onConfirm: () => {} });
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [errorSchools, setErrorSchools] = useState('');
@@ -53,11 +64,13 @@ export default function Dashboard() {
   const [projectSortField, setProjectSortField] = useState<keyof Project>('name');
   const [projectSortAsc, setProjectSortAsc] = useState(true);
 
+
   const isAdmin = user?.role === 'ROLE_ADMIN';
 
   useEffect(() => {
     fetchSchools();
     fetchProjects();
+    if (isAdmin) fetchUserCount();
   }, []);
 
   const fetchSchools = async () => {
@@ -86,40 +99,40 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteSchool = async (id: number) => {
-  if (!window.confirm('Are you sure you want to delete this school?')) return;
-  
-  try {
-    await deleteSchool(id);
-    fetchSchools();
-  } catch (err: any) {
-    if (err.response?.status === 404) {
-      alert('School not found');
-    } else {
-      alert("Error: can't delete the selected school");
+  const fetchUserCount = async () => {
+    try {
+      const response = await getUserCount();
+      setUserCount(response.data);
+    } catch {
+      console.error('Error fetching user count');
     }
-  }
-};
-
-const handleDeleteProject = async (id: number) => {
-  if (!window.confirm('Are you sure you want to delete this project?')) return;
-
-  try {
-    await deleteProject(id);
-    fetchProjects();
-  } catch (err: any) {
-    if (err.response?.status === 404) {
-      alert('Project not found');
-    } else {
-      alert("Error: can't delete the selected project");
-    }
-  }
-};
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
   };
+
+  const handleDeleteSchool = (id: number) => {
+    showConfirm('Are your sure to delete this school?', async () => {
+      setConfirmModal(prev => ({ ...prev, show: false }));
+      try {
+        await deleteSchool(id);
+        fetchSchools();
+      } catch (err: any) {
+        alert('Error deleting school');
+      }
+    });
+  };
+
+  const handleDeleteProject = (id: number) => {
+    showConfirm('Are you sure to delete this project?', async () => {
+      setConfirmModal(prev => ({ ...prev, show: false }));
+      try {
+        await deleteProject(id);
+        fetchProjects();
+      } catch (err: any) {
+        alert('Error deleting project');
+      }
+    });
+  };
+
+ 
 
   // Format Date
   const formatDate = (dateStr: string) => {
@@ -127,6 +140,16 @@ const handleDeleteProject = async (id: number) => {
     const [year, month, day] = dateStr.split('-');
     return `${day}/${month}/${year}`;
   };
+
+  // Format boolean
+  const renderBoolean = (value: boolean) => {
+    return value ? '✅' : '❌';
+  };
+
+  // Show delete modal
+  const showConfirm = (message: string, onConfirm: () => void) => {
+  setConfirmModal({ show: true, message, onConfirm });
+};
 
   // Filter and sorting schools
   const filteredSchools = schools
@@ -179,15 +202,7 @@ const handleDeleteProject = async (id: number) => {
 
   return (
     <div className="dashboard">
-      {/* HEADER */}
-      <header className="dashboard-header">
-        <h1>Komorebi</h1>
-        <div className="header-right">
-          <span>Hi, {user?.username} ({isAdmin ? 'Admin' : 'Usuario'})</span>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
+      <Navbar/>
       {/* SUMMARY */}
       <section className="summary">
         <div className="summary-card">
@@ -203,9 +218,9 @@ const handleDeleteProject = async (id: number) => {
           <p className="summary-number">{projects.filter(p => p.active).length}</p>
         </div>
         {isAdmin && (
-          <div className="summary-card admin">
-            <h3>Role</h3>
-            <p className="summary-number">ADMIN</p>
+          <div className="summary-card">
+            <h3>Number of users</h3>
+            <p className="summary-number">{userCount}</p>
           </div>
         )}
       </section>
@@ -234,18 +249,22 @@ const handleDeleteProject = async (id: number) => {
             value={filterSchoolCity}
             onChange={(e) => setFilterSchoolCity(e.target.value)}
           />
-          <input
-            type="date"
-            value={schoolDateFrom}
-            onChange={(e) => setSchoolDateFrom(e.target.value)}
-            title="Desde"
-          />
-          <input
-            type="date"
-            value={schoolDateTo}
-            onChange={(e) => setSchoolDateTo(e.target.value)}
-            title="Hasta"
-          />
+          <div className="filter-date-group">
+            <label>Register Date from:</label>
+            <input
+              type="date"
+              value={schoolDateFrom}
+              onChange={(e) => setSchoolDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="filter-date-group">
+            <label>Register Date to:</label>
+            <input
+              type="date"
+              value={schoolDateTo}
+              onChange={(e) => setSchoolDateTo(e.target.value)}
+            />
+          </div>
         </div>
 
         {loadingSchools && <div className="state-msg">Loading...</div>}
@@ -280,7 +299,7 @@ const handleDeleteProject = async (id: number) => {
                   <td>{school.name}</td>
                   <td>{school.city}</td>
                   <td>{school.students}</td>
-                  <td>{school.publicSchool ? 'Yes' : 'No'}</td>
+                  <td>{renderBoolean(school.publicSchool)}</td>
                   <td>{formatDate(school.registerDate)}</td>
                   {isAdmin && (
                     <td>
@@ -317,18 +336,22 @@ const handleDeleteProject = async (id: number) => {
             value={filterProjectName}
             onChange={(e) => setFilterProjectName(e.target.value)}
           />
-          <input
-            type="date"
-            value={projectDateFrom}
-            onChange={(e) => setProjectDateFrom(e.target.value)}
-            title="Desde"
-          />
-          <input
-            type="date"
-            value={projectDateTo}
-            onChange={(e) => setProjectDateTo(e.target.value)}
-            title="Hasta"
-          />
+          <div className="filter-date-group">
+            <label>Start Date from</label>
+            <input
+              type="date"
+              value={projectDateFrom}
+              onChange={(e) => setProjectDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="filter-date-group">
+            <label>Start Date to</label>
+            <input
+              type="date"
+              value={projectDateTo}
+              onChange={(e) => setProjectDateTo(e.target.value)}
+            />
+          </div>
         </div>
 
         {loadingProjects && <div className="state-msg">Loading...</div>}
@@ -360,8 +383,8 @@ const handleDeleteProject = async (id: number) => {
                 <tr key={project.id}>
                   <td>{project.name}</td>
                   <td>{project.description}</td>
-                  <td>{project.ods}</td>
-                  <td>{project.active ? 'Yes' : 'No'}</td>
+                  <td>{ODS_LIST.find(o => o.value === project.ods)?.label || project.ods}</td>
+                  <td>{renderBoolean(project.active)}</td>
                   <td>{formatDate(project.startDate)}</td>
                   {isAdmin && (
                     <td>
@@ -379,6 +402,13 @@ const handleDeleteProject = async (id: number) => {
           </table>
         )}
       </section>
+      {confirmModal.show && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        />
+      )}
     </div>
   );
 }
